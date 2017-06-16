@@ -103,7 +103,7 @@ static void *KINWebBrowserContext = &KINWebBrowserContext;
             self.uiWebView = [[UIWebView alloc] init];
         }
         
-        self.actionButtonHidden = NO;
+        self.actionButtonHidden = YES;
         self.showsURLInNavigationBar = NO;
         self.showsPageTitleInNavigationBar = YES;
         
@@ -155,7 +155,7 @@ static void *KINWebBrowserContext = &KINWebBrowserContext;
     [super viewWillAppear:animated];
     
     [self.navigationController setNavigationBarHidden:NO animated:YES];
-    [self.navigationController setToolbarHidden:NO animated:YES];
+    [self.navigationController setToolbarHidden:YES animated:YES];
     
     [self.navigationController.navigationBar addSubview:self.progressView];
     
@@ -390,13 +390,13 @@ static void *KINWebBrowserContext = &KINWebBrowserContext;
         }
     }
     
-    if(!self.actionButtonHidden) {
+    if(self.actionButtonHidden) {
         NSMutableArray *mutableBarButtonItems = [NSMutableArray arrayWithArray:barButtonItems];
         [mutableBarButtonItems addObject:self.actionButton];
         barButtonItems = [NSArray arrayWithArray:mutableBarButtonItems];
     }
     
-    [self setToolbarItems:barButtonItems animated:YES];
+//    [self setToolbarItems:barButtonItems animated:YES];
     
     self.tintColor = self.tintColor;
     self.barTintColor = self.barTintColor;
@@ -405,7 +405,7 @@ static void *KINWebBrowserContext = &KINWebBrowserContext;
 }
 
 - (void)setupToolbarItems {
-    NSBundle *bundle = [NSBundle bundleForClass:[KINWebBrowserViewController class]];
+    NSBundle *bundle = [NSBundle bundleForClass:[self class]];
     
     self.refreshButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(refreshButtonPressed:)];
     self.stopButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop target:self action:@selector(stopButtonPressed:)];
