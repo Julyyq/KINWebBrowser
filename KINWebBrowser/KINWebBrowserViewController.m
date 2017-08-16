@@ -236,6 +236,18 @@ static void *KINWebBrowserContext = &KINWebBrowserContext;
             if([self.delegate respondsToSelector:@selector(webBrowser:didStartLoadingURL:)]) {
                 [self.delegate webBrowser:self didStartLoadingURL:request.URL];
             }
+
+            BOOL headerIsPresent = [[request allHTTPHeaderFields] objectForKey:@"Authorization"] != nil;
+            if(headerIsPresent) return YES;
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    NSURL *url = [request URL];
+                    NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:15.0];
+                    [request addValue:self.authToken forHTTPHeaderField:@"Authorization"];
+                    [webView loadRequest:request];
+                });
+            });
+            
             return YES;
         }
         else {
