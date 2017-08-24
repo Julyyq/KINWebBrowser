@@ -237,16 +237,18 @@ static void *KINWebBrowserContext = &KINWebBrowserContext;
                 [self.delegate webBrowser:self didStartLoadingURL:request.URL];
             }
 
-            BOOL headerIsPresent = [[request allHTTPHeaderFields] objectForKey:@"Authorization"] != nil;
-            if(headerIsPresent) return YES;
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    NSURL *url = [request URL];
-                    NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:15.0];
-                    [request addValue:self.authToken forHTTPHeaderField:@"Authorization"];
-                    [webView loadRequest:request];
+            if(self.authToken) {
+                BOOL headerIsPresent = [[request allHTTPHeaderFields] objectForKey:@"Authorization"] != nil;
+                if(headerIsPresent) return YES;
+                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        NSURL *url = [request URL];
+                        NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:15.0];
+                        [request addValue:self.authToken forHTTPHeaderField:@"Authorization"];
+                        [webView loadRequest:request];
+                    });
                 });
-            });
+            }
             
             return YES;
         }
@@ -345,21 +347,23 @@ static void *KINWebBrowserContext = &KINWebBrowserContext;
         }
     }
     
-    NSURLRequest *request = navigationAction.request;
-    BOOL headerIsPresent = [[request allHTTPHeaderFields] objectForKey:@"Authorization"] != nil;
-    if(headerIsPresent) {
-        decisionHandler(WKNavigationActionPolicyAllow);
-        return;
-    }
-    __unsafe_unretained typeof(self) self_ = self;
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        dispatch_async(dispatch_get_main_queue(), ^{
-            NSURL *url = [request URL];
-            NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:15.0];
-            [request addValue: self_.authToken forHTTPHeaderField:@"Authorization"];
-            [self loadRequest:request];
+    if(self.authToken) {
+        NSURLRequest *request = navigationAction.request;
+        BOOL headerIsPresent = [[request allHTTPHeaderFields] objectForKey:@"Authorization"] != nil;
+        if(headerIsPresent) {
+            decisionHandler(WKNavigationActionPolicyAllow);
+            return;
+        }
+        __unsafe_unretained typeof(self) self_ = self;
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            dispatch_async(dispatch_get_main_queue(), ^{
+                NSURL *url = [request URL];
+                NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:15.0];
+                [request addValue: self_.authToken forHTTPHeaderField:@"Authorization"];
+                [self loadRequest:request];
+            });
         });
-    });
+    }
 
     decisionHandler(WKNavigationActionPolicyAllow);
 }
